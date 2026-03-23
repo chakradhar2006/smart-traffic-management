@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Profile — SmartTraffic.AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <style>
+        .profile-card { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+        .profile-field { display: flex; flex-direction: column; gap: 4px; }
+        .profile-label { font-size: 0.78rem; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+        .profile-value { font-size: 1rem; font-weight: 500; color: var(--text-primary); }
+        .role-badge { display: inline-block; padding: 3px 10px; border-radius: 999px; font-size: 0.75rem; font-weight: 600; letter-spacing: 0.05em; }
+        .role-admin  { background: rgba(255,100,100,0.15); color: #ff6b6b; border: 1px solid rgba(255,100,100,0.3); }
+        .role-user   { background: rgba(88,166,255,0.15); color: var(--blue-light); border: 1px solid rgba(88,166,255,0.3); }
+        #profile-loading { text-align: center; color: var(--text-secondary); padding: 2rem 0; }
+    </style>
+</head>
+<body>
+    <nav>
+        <h1>SmartTraffic.AI</h1>
+        <div class="links">
+            <a href="index.html" id="nav-upload-link" style="display:none">Setup</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="rule_breakers.html">Violations</a>
+            <a href="profile.html" class="active">Profile</a>
+            <button type="button" id="nav-logout-btn" class="nav-link-btn" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <main class="hero">
+        <div class="glass-panel" style="width: 100%; max-width: 560px; margin: 0 auto;">
+            <div id="profile-loading">Loading your profile…</div>
+
+            <div id="profile-content" style="display:none;">
+                <div style="display:flex; align-items:center; gap: 1rem; margin-bottom: 1.5rem;">
+                    <div style="width:56px; height:56px; border-radius:50%; background: var(--blue-light); display:flex; align-items:center; justify-content:center; font-size:1.5rem; font-weight:700; color:#0d1117;" id="avatar-initials">?</div>
+                    <div>
+                        <div style="font-size:1.25rem; font-weight:700;" id="profile-name">—</div>
+                        <span class="role-badge" id="profile-role-badge">user</span>
+                    </div>
+                </div>
+
+                <div class="profile-card">
+                    <div class="profile-field">
+                        <span class="profile-label">User ID</span>
+                        <span class="profile-value" id="pf-userid">—</span>
+                    </div>
+                    <div class="profile-field">
+                        <span class="profile-label">Region</span>
+                        <span class="profile-value" id="pf-region">—</span>
+                    </div>
+                    <div class="profile-field">
+                        <span class="profile-label">Phone</span>
+                        <span class="profile-value" id="pf-phone">—</span>
+                    </div>
+                    <div class="profile-field">
+                        <span class="profile-label">Experience</span>
+                        <span class="profile-value" id="pf-experience">—</span>
+                    </div>
+                </div>
+
+                <!-- Admin-only section -->
+                <div id="admin-section" style="display:none; margin-top:1.5rem; padding-top:1.5rem; border-top: 1px solid rgba(255,255,255,0.08);">
+                    <p style="font-size:0.85rem; color: var(--text-secondary); margin-bottom: 1rem;">
+                        🔑 You have <strong>Admin</strong> access. You can manage the full traffic system.
+                    </p>
+                    <a href="index.html" class="btn-primary" style="text-decoration:none; display:inline-block;">
+                        Go to System Setup →
+                    </a>
+                </div>
+            </div>
+
+            <div id="profile-error" style="display:none; color:var(--red-light); text-align:center; padding: 1rem 0;"></div>
+        </div>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+
+    <script>
+        const token = sessionStorage.getItem('token');
+
+        // Not logged in → redirect to login
+        if (!token) {
+            window.location.href = 'login.html';
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+
+        async function loadProfile() {
+            const loadingEl = document.getElementById('profile-loading');
+            const contentEl = document.getElementById('profile-content');
+            const errorEl   = document.getElementById('profile-error');
+
+            try {
+                const res = await fetch(`${API_URL}/api/profile`, {
+                    headers: { 'Authorization': `Bearer ${token}` }
+                });
+
+                if (res.status === 401) {
+                    sessionStorage.clear();
+                    window.location.href = 'login.html?expired=1';
+                    return;
+                }
+
+                if (!res.ok) {
+                    const d = await res.json().catch(() => ({}));
+                    throw new Error(d.detail || 'Failed to load profile');
+                }
+
+                const user = await res.json();
+
+                // Populate fields
+                document.getElementById('profile-name').innerText =
+                    `${user.first_name} ${user.last_name}`;
+                document.getElementById('avatar-initials').innerText =
+                    (user.first_name[0] + user.last_name[0]).toUpperCase();
+                document.getElementById('pf-userid').innerText   = user.user_id;
+                document.getElementById('pf-region').innerText   = user.region;
+                document.getElementById('pf-phone').innerText    = user.phone;
+                document.getElementById('pf-experience').innerText = user.experience + ' yrs';
+
+                const roleBadge = document.getElementById('profile-role-badge');
+                const role = (user.role || 'user').toLowerCase();
+                roleBadge.innerText = role.toUpperCase();
+                roleBadge.className = `role-badge role-${role}`;
+
+                // Show setup link and admin section only for admins
+                if (role === 'admin') {
+                    document.getElementById('admin-section').style.display = 'block';
+                    document.getElementById('nav-upload-link').style.display = 'inline';
+                }
+
+                loadingEl.style.display = 'none';
+                contentEl.style.display = 'block';
+
+            } catch (err) {
+                loadingEl.style.display = 'none';
+                errorEl.style.display   = 'block';
+                if (err.message === 'Failed to fetch') {
+                    errorEl.innerText = '❌ Cannot reach server. Please ensure the backend is running.';
+                } else {
+                    errorEl.innerText = '❌ ' + err.message;
+                }
+            }
+        }
+
+        loadProfile();
+    </script>
+</body>
+</html>

@@ -1,0 +1,108 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Smart Traffic Dashboard</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+    <nav>
+        <h1>SmartTraffic.AI</h1>
+        <div class="links">
+            <a href="index.html">Setup</a>
+            <a href="dashboard.html" class="active">Dashboard</a>
+            <a href="rule_breakers.html">Violations</a>
+        </div>
+    </nav>
+    
+    <div class="dashboard-container">
+        <div class="video-grid">
+            <!-- Lane 1 -->
+            <div class="glass-panel video-panel">
+                <div class="panel-header">
+                    <h3>Lane 1</h3>
+                    <span id="emg-1" style="font-size:0.75rem; color:#ff7b72; display:none;">EMERGENCY</span>
+                    <div class="signal">
+                        <div class="light red" id="light-1-red"></div>
+                        <div class="light yellow" id="light-1-yellow"></div>
+                        <div class="light green" id="light-1-green"></div>
+                    </div>
+                </div>
+                <img id="stream-1" class="video-stream" src="" onerror="this.style.display='none'; document.getElementById('ph-1').style.display='flex';" />
+                <div class="video-stream" id="ph-1" style="display:none; justify-content:center; align-items:center;">
+                    <span>Feed Offline</span>
+                </div>
+            </div>
+            <!-- Lane 2 -->
+            <div class="glass-panel video-panel">
+                <div class="panel-header">
+                    <h3>Lane 2</h3>
+                    <span id="emg-2" style="font-size:0.75rem; color:#ff7b72; display:none;">EMERGENCY</span>
+                    <div class="signal">
+                        <div class="light red" id="light-2-red"></div>
+                        <div class="light yellow" id="light-2-yellow"></div>
+                        <div class="light green" id="light-2-green"></div>
+                    </div>
+                </div>
+                <img id="stream-2" class="video-stream" src="" onerror="this.style.display='none'; document.getElementById('ph-2').style.display='flex';" />
+                <div class="video-stream" id="ph-2" style="display:none; justify-content:center; align-items:center;">
+                    <span>Feed Offline</span>
+                </div>
+            </div>
+            <!-- Lane 3 -->
+            <div class="glass-panel video-panel">
+                <div class="panel-header">
+                    <h3>Lane 3</h3>
+                    <span id="emg-3" style="font-size:0.75rem; color:#ff7b72; display:none;">EMERGENCY</span>
+                    <div class="signal">
+                        <div class="light red" id="light-3-red"></div>
+                        <div class="light yellow" id="light-3-yellow"></div>
+                        <div class="light green" id="light-3-green"></div>
+                    </div>
+                </div>
+                <img id="stream-3" class="video-stream" src="" onerror="this.style.display='none'; document.getElementById('ph-3').style.display='flex';" />
+                <div class="video-stream" id="ph-3" style="display:none; justify-content:center; align-items:center;">
+                    <span>Feed Offline</span>
+                </div>
+            </div>
+            <!-- Lane 4 -->
+            <div class="glass-panel video-panel">
+                <div class="panel-header">
+                    <h3>Lane 4</h3>
+                    <span id="emg-4" style="font-size:0.75rem; color:#ff7b72; display:none;">EMERGENCY</span>
+                    <div class="signal">
+                        <div class="light red" id="light-4-red"></div>
+                        <div class="light yellow" id="light-4-yellow"></div>
+                        <div class="light green" id="light-4-green"></div>
+                    </div>
+                </div>
+                <img id="stream-4" class="video-stream" src="" onerror="this.style.display='none'; document.getElementById('ph-4').style.display='flex';" />
+                <div class="video-stream" id="ph-4" style="display:none; justify-content:center; align-items:center;">
+                    <span>Feed Offline</span>
+                </div>
+            </div>
+        </div>
+        
+        <div class="side-panel">
+            <div class="glass-panel chart-container">
+                <canvas id="densityChart"></canvas>
+            </div>
+            <div class="log-container" id="log-container">
+                <div style="font-weight:bold; margin-bottom: 8px; color:white; border-bottom: 1px solid #333; padding-bottom: 8px;">Real-Time System Logs</div>
+                <!-- Logs injected here -->
+            </div>
+            <div>
+                <button class="btn-primary" style="width:100%; font-size: 0.9rem; margin-bottom: 10px;" onclick="simulateEmergency()">Simulate Emergency (Random Lane)</button>
+                <button id="stop-btn" class="btn-primary" style="width:100%; font-size: 0.9rem; background: var(--red-light); border-color: var(--red-light);" onclick="stopSystem()">Stop System Analysis</button>
+            </div>
+        </div>
+    </div>
+    
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+
+</body>
+</html>

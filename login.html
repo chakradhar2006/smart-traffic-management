@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login — SmartTraffic.AI</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <nav>
+        <h1>SmartTraffic.AI</h1>
+        <div class="links">
+            <a href="index.html">Setup</a>
+            <a href="dashboard.html">Dashboard</a>
+            <a href="rule_breakers.html">Violations</a>
+            <a href="login.html" class="active" id="nav-login-link">Login</a>
+            <button type="button" id="nav-logout-btn" class="nav-link-btn" style="display:none" onclick="logout()">Logout</button>
+        </div>
+    </nav>
+
+    <main class="hero">
+        <div class="glass-panel" style="width: 100%; max-width: 420px; margin: 0 auto; text-align: left;">
+            <h2 style="margin-bottom: 8px; text-align: center;">Welcome Back</h2>
+            <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.5rem; text-align: center;">
+                Sign in to your SmartTraffic.AI account.
+            </p>
+
+            <!-- Success message from signup redirect -->
+            <div id="signup-success-msg" style="display:none; background: rgba(0,200,81,0.1); border: 1px solid var(--green-light); border-radius: 8px; padding: 10px 14px; font-size: 0.88rem; color: var(--green-light); margin-bottom: 1rem; text-align:center;">
+                ✅ Account created! Please log in.
+            </div>
+
+            <form id="login-form" onsubmit="submitLogin(event)" autocomplete="on">
+                <label style="display:block; margin-bottom: 8px; font-size: 0.9rem;">User ID</label>
+                <input type="text" id="user_id" name="user_id" required class="login-input"
+                       placeholder="Enter your user ID" style="width:100%; margin-bottom: 1rem;" />
+
+                <label style="display:block; margin-bottom: 8px; font-size: 0.9rem;">Password</label>
+                <input type="password" id="password" name="password" required class="login-input"
+                       placeholder="Enter your password" style="width:100%; margin-bottom: 1.5rem;" />
+
+                <button type="submit" class="btn-primary" style="width:100%;" id="login-btn">Login</button>
+
+                <div style="text-align: center; margin-top: 1rem;">
+                    <a href="signup.html" style="font-size: 0.9rem; color: var(--blue-light); text-decoration: none;">
+                        Don't have an account? Sign up here.
+                    </a>
+                </div>
+            </form>
+
+            <div id="login-msg" style="margin-top: 16px; min-height: 24px; font-size: 0.9rem; text-align: center;"></div>
+        </div>
+    </main>
+
+    <script src="config.js"></script>
+    <script src="script.js"></script>
+
+    <script>
+        // Show success banner if redirected from signup
+        const params = new URLSearchParams(window.location.search);
+        if (params.get('signup') === 'success') {
+            document.getElementById('signup-success-msg').style.display = 'block';
+        }
+
+        // If already logged in, redirect to profile
+        if (sessionStorage.getItem('token')) {
+            window.location.href = 'profile.html';
+        }
+
+        async function submitLogin(e) {
+            e.preventDefault();
+            const msg = document.getElementById('login-msg');
+            const btn = document.getElementById('login-btn');
+
+            const user_id  = document.getElementById('user_id').value.trim();
+            const password = document.getElementById('password').value;
+
+            btn.disabled = true;
+            btn.innerText = 'Logging in…';
+            msg.innerText = '';
+
+            try {
+                const fd = new FormData();
+                fd.append('user_id', user_id);
+                fd.append('password', password);
+
+                const res = await fetch(`${API_URL}/api/login`, {
+                    method: 'POST',
+                    body: fd
+                });
+
+                const data = await res.json().catch(() => ({}));
+
+                if (!res.ok) {
+                    throw new Error(data.detail || data.message || 'Invalid credentials');
+                }
+
+                // Store token and user info
+                sessionStorage.setItem('token', data.token);
+                sessionStorage.setItem('user_id', data.user_id);
+                sessionStorage.setItem('role', data.role || 'user');
+
+                msg.style.color = 'var(--green-light)';
+                msg.innerText = '✅ Login successful! Redirecting…';
+
+                window.location.href = 'profile.html';
+
+
+            } catch (err) {
+                msg.style.color = 'var(--red-light)';
+                if (err.message === 'Failed to fetch') {
+                    msg.innerText = '❌ Cannot reach server. Please ensure the backend is running.';
+                } else {
+                    msg.innerText = '❌ ' + (err.message || 'Login failed');
+                }
+                btn.disabled = false;
+                btn.innerText = 'Login';
+            }
+        }
+
+        function logout() {
+            sessionStorage.clear();
+            window.location.href = 'login.html';
+        }
+    </script>
+</body>
+</html>
